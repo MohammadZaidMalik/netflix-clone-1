@@ -43,6 +43,7 @@ class FeedViewModel @Inject constructor() : ViewModel() {
 
     fun fetchData() = viewModelScope.launch(Dispatchers.IO) {
         feedList.value = Resource(isLoading = true)
+        val gitDBData = async { fetchGitDbData() }
         val trendingFirstDeferred = async { fetchTrendingFirst() }
         val popularMoviesDeferred = async { fetchPopularMovies() }
         val netflixTvShowsDeferred = async { discoverNetflixTvShows() }
@@ -94,6 +95,21 @@ class FeedViewModel @Inject constructor() : ViewModel() {
     }
 
     private suspend fun fetchTrendingFirst(): Media? {
+        return try {
+            val response = MediaRepository.fetchTrending("day")
+            val filteredResults = response.results.filter { it.mediaType != MediaType.PERSON }
+            if (filteredResults.isNotEmpty()) {
+                val dayOfMonth = Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+                val filteredResultsCount = filteredResults.count()
+                filteredResults.getOrNull(dayOfMonth % filteredResultsCount)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    private suspend fun fetchGitDbData(): Media? {
         return try {
             val response = MediaRepository.fetchTrending("day")
             val filteredResults = response.results.filter { it.mediaType != MediaType.PERSON }

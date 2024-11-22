@@ -10,10 +10,12 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.lang.reflect.InvocationTargetException
 
 object ApiClient {
     private const val TMDB_BASE_URL = "https://api.themoviedb.org/3/"
+    private const val GIT_DB_URL = "https://raw.githubusercontent.com/faltu-giri/GIT_Media_DB_Repo/refs/heads/master/";
     private const val FIREBASE_BASE_URL =
         "https://firebasestorage.googleapis.com/v0/b/sample-a8754.appspot.com/o/"
 
@@ -29,6 +31,7 @@ object ApiClient {
                 .withSubtype(FeedItem.Header::class.java, "header")
                 .withSubtype(FeedItem.HorizontalList::class.java, "horizontal_list")
         )
+
         .add(KotlinJsonAdapterFactory())
         .build()
 
@@ -80,7 +83,17 @@ object ApiClient {
             .create(FirebaseService::class.java)
     }
 
+    private fun getGitDBClient():GitDbService
+    {
+        return Retrofit.Builder()
+            .baseUrl(GIT_DB_URL)
+            .client(getClient(addApiKey = false))
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build()
+            .create(GitDbService::class.java)
+    }
 
     val TMDB = getTmdbClient()
     val Firebase = getFirebaseClient()
+    val GITDB = getGitDBClient()
 }

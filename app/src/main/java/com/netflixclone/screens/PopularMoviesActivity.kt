@@ -8,9 +8,14 @@ import com.netflixclone.data.MediaViewModel
 import com.netflixclone.data_models.Movie
 import com.netflixclone.databinding.ActivityPopularMoviesBinding
 import com.netflixclone.extensions.toMediaBsData
+import com.netflixclone.network.services.ApiClient
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
+import retrofit2.Callback
+import android.util.Log;
+import retrofit2.Call
+import retrofit2.Response
 
 @AndroidEntryPoint
 class PopularMoviesActivity : BaseActivity() {
@@ -25,6 +30,22 @@ class PopularMoviesActivity : BaseActivity() {
 
         setupUI()
         fetchData()
+        fetchGitData();
+    }
+
+    private fun fetchGitData()
+    {
+        lifecycleScope.launchWhenCreated {
+            try {
+
+                var data = viewModel.getGitData("m_master.txt")
+                var data1 = viewModel.getGitData("m_db_0.txt")
+                print("m_master.txt : " + data)
+                print("m_db_0.txt : " + data)
+            } catch (ex: Exception) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     private fun setupUI() {
