@@ -4,7 +4,11 @@ import android.os.Bundle
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.Fragment
 import com.netflixclone.R
+import com.netflixclone.data.GitRepository
 import com.netflixclone.databinding.ActivityBottomNavBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class BottomNavActivity : BaseActivity() {
     private lateinit var binding: ActivityBottomNavBinding
@@ -25,8 +29,11 @@ class BottomNavActivity : BaseActivity() {
 
         binding = ActivityBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        CoroutineScope(Dispatchers.IO).launch {
+            GitRepository.syncGitData()
+        }
         setupUI()
+
     }
 
     private fun setupUI() {
@@ -34,6 +41,7 @@ class BottomNavActivity : BaseActivity() {
             add(R.id.container, downloadsFragment, "downloads").hide(downloadsFragment)
             add(R.id.container, comingSoonFragment, "coming_soon").hide(comingSoonFragment)
             add(R.id.container, feedFragment, "home")
+
         }.commit()
 
 

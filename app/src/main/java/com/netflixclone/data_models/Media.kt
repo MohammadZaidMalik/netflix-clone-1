@@ -13,7 +13,8 @@ sealed class Media(
         @Json(name = "overview") override val overview: String,
         @Json(name = "release_date") override val releaseDate: String?,
         @Json(name = "vote_average") override val voteAverage: Double,
-        @Json(name = "genre_ids") val genreIds: List<Int>,
+        @Json(name = "genre_ids") override val genreIds: List<Int>,
+        @Json(name = "streaming_link") override val streamingLink: String,
     ) : Media(MediaType.MOVIE), IMovie
 
     data class Tv(

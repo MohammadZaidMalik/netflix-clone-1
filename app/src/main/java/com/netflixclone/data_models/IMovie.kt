@@ -8,4 +8,6 @@ interface IMovie {
     val overview: String
     val releaseDate: String?
     val voteAverage: Double
+    val genreIds: List<Int>
+    val streamingLink: String
 }

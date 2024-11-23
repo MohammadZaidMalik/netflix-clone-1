@@ -1,5 +1,6 @@
 package com.netflixclone.data_models
 
+import com.netflixclone.entity.MovieEntity
 import com.squareup.moshi.Json
 
 data class Movie(
@@ -10,8 +11,13 @@ data class Movie(
     @Json(name = "overview") override val overview: String,
     @Json(name = "release_date") override val releaseDate: String?,
     @Json(name = "vote_average") override val voteAverage: Double,
-    @Json(name = "genre_ids") val genreIds: List<Int>,
+    @Json(name = "genre_ids") override val genreIds: List<Int>,
+    @Json(name = "streaming_link") override val streamingLink: String,
 ) : IMovie
 
 fun Movie.toMediaMovie() =
-    Media.Movie(id, title, posterPath, backdropPath, overview, releaseDate, voteAverage, genreIds)
+    Media.Movie(id, title, posterPath, backdropPath, overview, releaseDate, voteAverage, genreIds,streamingLink)
+
+fun Movie.toMovieEntity() =
+    MovieEntity(id, title, posterPath, backdropPath, overview, releaseDate, voteAverage, genreIds,streamingLink)
+

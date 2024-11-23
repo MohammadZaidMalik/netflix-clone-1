@@ -6,10 +6,6 @@ import com.netflixclone.data_models.Movie
 import com.netflixclone.data_models.TvShow
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import javax.inject.Inject
 
 
@@ -28,11 +24,11 @@ class MediaViewModel @Inject constructor() : ViewModel() {
         return MediaRepository.getPopularTvShowsStream()
     }
 
-    suspend fun getGitData(s:String): String?
-    {
-        var call = GitRepository.getGitData(s)
-        val response: Response<String> = call.execute();
-
-        return  response.body()
-    }
+//    suspend fun getGitData(s:String): String?
+//    {
+//        var call = GitRepository.getGitData(s)
+//        val response: Response<String> = call.execute();
+//
+//        return  response.body()
+//    }
 }

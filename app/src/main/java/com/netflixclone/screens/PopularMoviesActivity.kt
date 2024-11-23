@@ -30,23 +30,8 @@ class PopularMoviesActivity : BaseActivity() {
 
         setupUI()
         fetchData()
-        fetchGitData();
     }
 
-    private fun fetchGitData()
-    {
-        lifecycleScope.launchWhenCreated {
-            try {
-
-                var data = viewModel.getGitData("m_master.txt")
-                var data1 = viewModel.getGitData("m_db_0.txt")
-                print("m_master.txt : " + data)
-                print("m_db_0.txt : " + data)
-            } catch (ex: Exception) {
-                ex.printStackTrace();
-            }
-        }
-    }
 
     private fun setupUI() {
         binding.toolbar.setNavigationOnClickListener { finish() }
