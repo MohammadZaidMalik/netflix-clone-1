@@ -3,11 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".screens.MediaDetailsBottomSheet"
-    tools:ignore="UnusedAttribute"
-    tools:targetApi="m">
+    tools:ignore="UnusedAttribute" android:id="@+id/movie_bs" >
 
     <LinearLayout
         android:id="@+id/content"
@@ -146,11 +145,11 @@
                 android:id="@+id/download_ll"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
                 android:layout_weight="0.5"
+                android:background="?selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:layout_marginStart="8dp"
-                android:background="?selectableItemBackgroundBorderless"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -173,9 +172,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
+                android:background="?selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?selectableItemBackgroundBorderless"
                 android:gravity="center"
                 android:orientation="vertical">
 

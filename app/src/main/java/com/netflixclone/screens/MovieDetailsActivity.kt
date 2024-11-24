@@ -1,7 +1,10 @@
 package com.netflixclone.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -15,6 +18,7 @@ import com.netflixclone.data_models.Video
 import com.netflixclone.databinding.ActivityMovieDetailsBinding
 import com.netflixclone.extensions.*
 import com.netflixclone.network.models.MovieDetailsResponse
+import com.netflixclone.network.services.MediaPlayService
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
@@ -31,6 +35,7 @@ class MovieDetailsActivity : BaseActivity() {
     private lateinit var videosController: VideosController
     private val movieId: Int?
         get() = intent.extras?.getInt("id")
+    private val streamLink: String? get() = intent.extras?.getString("streamingLink")
 
     var isVideoRestarted = false
     var player: YouTubePlayer? = null
@@ -64,6 +69,7 @@ class MovieDetailsActivity : BaseActivity() {
         binding.youtubePlayerView.hide()
         binding.thumbnail.container.hide()
         binding.thumbnail.playContainer.setOnClickListener { replayVideo() }
+
 
         binding.header.overviewText.setOnClickListener {
             binding.header.overviewText.maxLines = 10
@@ -132,6 +138,16 @@ class MovieDetailsActivity : BaseActivity() {
         if(details.videos != null)
             checkAndLoadVideo(details.videos.results)
         videosController.setData(details.videos?.results)
+        binding.header.playLl.setOnClickListener({
+            val link = streamLink
+//            Log.i("MovieDetailActivyIntent","Link :  $link");
+//            val vlcIntent = Intent(Intent.ACTION_VIEW)
+//            vlcIntent.setDataAndType(Uri.parse("https://raw.githubusercontent.com/faltu-giri/"+link+"/refs/heads/master/out.m3u8#"+details.title), "video/*")
+//            vlcIntent.putExtra("title", details.title);
+//            vlcIntent.setPackage("org.videolan.vlc")
+//            startActivity(vlcIntent)
+            MediaPlayService.play(link,details.title,this);
+        });
     }
 
     private fun checkAndLoadVideo(videos: List<Video>) {

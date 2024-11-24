@@ -38,6 +38,7 @@ fun ITvShow.toMediaBsData(): MediaBsData {
         this.getPosterUrl(),
         this.name,
         this.getFirstAirDate(),
-        this.overview
+        this.overview,
+        ""
     )
 }
