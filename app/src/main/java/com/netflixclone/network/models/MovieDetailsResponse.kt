@@ -5,6 +5,7 @@ import com.netflixclone.data_models.Movie
 import com.squareup.moshi.Json
 
 data class MovieDetailsResponse(
+        @Json(name = "git_uid") override val gitUid: String?,
         @Json(name = "id") override val id: Int,
         @Json(name = "title") override val title: String,
         @Json(name = "poster_path") override val posterPath: String?,
@@ -12,7 +13,9 @@ data class MovieDetailsResponse(
         @Json(name = "overview") override val overview: String,
         @Json(name = "release_date") override val releaseDate: String?,
         @Json(name = "vote_average") override val voteAverage: Double,
+        @Json(name = "genre_ids") override val genreIds: List<Int>?,
+        @Json(name = "streaming_link") override val streamingLink: String?,
         @Json(name = "runtime") val runtime: Int?,
-        @Json(name = "similar") val similar: PageResponse<Movie>,
-        @Json(name = "videos") val videos: VideosResponse,
+        @Json(name = "similar") val similar: PageResponse<Movie>?,
+        @Json(name = "videos") val videos: VideosResponse?,
 ): IMovie

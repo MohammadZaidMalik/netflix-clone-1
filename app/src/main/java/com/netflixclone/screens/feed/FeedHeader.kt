@@ -193,7 +193,9 @@ val sampleMovie = Media.Movie(
     "",
     "",
     8.2,
-    listOf(80, 53, 18)
+    listOf(80, 53, 18),
+    "",
+    ""
 )
 
 @Composable

@@ -55,6 +55,7 @@ fun IMovie.toMediaBsData(): MediaBsData {
         this.getPosterUrl(),
         this.title,
         this.getReleaseYear(),
-        this.overview
+        this.overview,
+        this.streamingLink
     )
 }

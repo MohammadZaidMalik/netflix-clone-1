@@ -29,8 +29,9 @@ class BottomNavActivity : BaseActivity() {
 
         binding = ActivityBottomNavBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val context = this
         CoroutineScope(Dispatchers.IO).launch {
-            GitRepository.syncGitData()
+            GitRepository.syncGitData();
         }
         setupUI()
 

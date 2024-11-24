@@ -12,9 +12,10 @@ sealed class Media(
         @Json(name = "backdrop_path") override val backdropPath: String?,
         @Json(name = "overview") override val overview: String,
         @Json(name = "release_date") override val releaseDate: String?,
-        @Json(name = "vote_average") override val voteAverage: Double,
-        @Json(name = "genre_ids") override val genreIds: List<Int>,
-        @Json(name = "streaming_link") override val streamingLink: String,
+        @Json(name = "vote_average") override val voteAverage: Double?,
+        @Json(name = "genre_ids") override val genreIds: List<Int>?,
+        @Json(name = "git_uid") override val gitUid: String?,
+        @Json(name = "streaming_link") override val streamingLink: String?,
     ) : Media(MediaType.MOVIE), IMovie
 
     data class Tv(

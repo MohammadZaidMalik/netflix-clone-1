@@ -7,4 +7,5 @@ data class MediaBsData(
         val title: String,
         val releaseYear: String?,
         val overview: String,
+        val streamLink:String?
 )

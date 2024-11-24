@@ -1,25 +1,38 @@
 package com.netflixclone.data
 
-import android.content.Context
 import android.util.Log
 import com.netflixclone.db.MovieDb
+import com.netflixclone.db.entity.MovieEntity
+import com.netflixclone.db.entity.MovieSyncLogEntity
+import com.netflixclone.db.repos.MovieEntityDao
+import com.netflixclone.network.models.MovieDetailsResponse
 import com.netflixclone.network.services.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.HashMap
 import java.util.Scanner
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 
 object GitRepository
 {
-    suspend fun syncGitData(context:Context)
+    suspend fun syncGitData()
     {
-        syncMovieData(context);
-        syncSeriesData()
+//        val scope = CoroutineScope(Dispatchers.IO) // Use IO dispatcher for database operations
+//        scope.launch {
+//            syncMovieData();
+//        }
+
+        var ex:Executor = Executors.newSingleThreadExecutor();
+        ex.execute({->
+            syncMovieData();
+    });
+//        ex.execute(()->syncSeriesData());
+
     }
 
-    private fun syncMovieData(context:Context)
+    private fun syncMovieData()
     {
         try {
 
@@ -31,16 +44,16 @@ object GitRepository
                     {
                         val posts: String? = response.body()
                         Log.i("GitRepository","Git movie master data $posts");
-                        parseMovieMaster(posts,context);
+                        parseMovieMaster(posts);
                     }
                     else
                     {
-                        Log.e("RetrofitExample", "Error: ${response.code()} ${response.message()}")
+                        Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<String>, t: Throwable) {
-                    Log.e("RetrofitExample", "Network call failed: ${t.message}")
+                    Log.e("GitRepository", "Network call failed: ${t.message}")
                 }
             })
 
@@ -60,17 +73,17 @@ object GitRepository
                     if (response.isSuccessful)
                     {
                         val posts: String? = response.body()
-                        Log.i("GitRepository","Git movie master data $posts");
+//                        Log.i("GitRepository","Git movie master data $posts");
                         parseSeriesMaster(posts);
                     }
                     else
                     {
-                        Log.e("RetrofitExample", "Error: ${response.code()} ${response.message()}")
+                        Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<String>, t: Throwable) {
-                    Log.e("RetrofitExample", "Network call failed: ${t.message}")
+                    Log.e("GitRepository", "Network call failed: ${t.message}")
                 }
             })
 
@@ -90,7 +103,7 @@ object GitRepository
         loadSeriesFromDbFiles(dbFiles);
     }
 
-    private fun parseMovieMaster(movieMaster:String?,context:Context)
+    private fun parseMovieMaster(movieMaster:String?)
     {
         val sc = Scanner(movieMaster);
         val dbFiles = ArrayList<String?>();
@@ -98,7 +111,7 @@ object GitRepository
         while(sc.hasNext())
             dbFiles.add(sc.nextLine());
         sc.close();
-        loadMoviesFromDbFiles(dbFiles,context);
+        loadMoviesFromDbFiles(dbFiles);
     }
 
     private fun loadSeriesFromDbFiles(dbFiles: ArrayList<String?>)
@@ -120,20 +133,29 @@ object GitRepository
                     }
                     else
                     {
-                        Log.e("RetrofitExample", "Error: ${response.code()} ${response.message()}")
+                        Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<String>, t: Throwable) {
-                    Log.e("RetrofitExample", "Network call failed: ${t.message}")
+                    Log.e("GitRepository", "Network call failed: ${t.message}")
                 }
             })
 
         }
     }
 
-    private fun loadMoviesFromDbFiles(dbFiles: ArrayList<String?>,context:Context)
+    private fun loadMoviesFromDbFiles(dbFiles: ArrayList<String?>)
     {
+        var lastSyncE:MovieSyncLogEntity? = MovieDb.getMovieDB().movieLastSyncDao().getLastSync();
+        var lastSyncAt:Long = 0;
+
+        val movieDB: MovieEntityDao = MovieDb.getMovieDB().movieEntityDao()
+
+        if(lastSyncE != null)
+            lastSyncAt = lastSyncE.lastSyncedAt;
+
+
         dbFiles.forEach{dbFileName ->
             Log.i("GitRepository","Git movie db files $dbFileName");
                 if(dbFileName == null || dbFileName.trim().isEmpty())
@@ -146,52 +168,186 @@ object GitRepository
                     if (response.isSuccessful)
                     {
                         val posts: String? = response.body()
-                        Log.i("GitRepository","Git movie db data $posts");
-                        processMovieDBData(posts,context);
+//                        Log.i("GitRepository","Git movie db data $posts");
+                        processMovieDBData(posts,movieDB,lastSyncAt);
                     }
                     else
                     {
-                        Log.e("RetrofitExample", "Error: ${response.code()} ${response.message()}")
+                        Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<String>, t: Throwable) {
-                    Log.e("RetrofitExample", "Network call failed: ${t.message}")
+                    Log.e("GitRepository", "Network call failed: ${t.message}")
                 }
             })
 
         }
+
+        if(lastSyncE == null) {
+            lastSyncE = MovieSyncLogEntity(1, System.currentTimeMillis());
+            MovieDb.getMovieDB().movieLastSyncDao().insertAll(lastSyncE);
+        }
+        else
+        {
+            lastSyncE.lastSyncedAt = System.currentTimeMillis();
+            MovieDb.getMovieDB().movieLastSyncDao().update(lastSyncE);
+        }
+
+
     }
 
-    private fun processMovieDBData(data: String?,context:Context)
+    private fun processMovieDBData(data: String?,movieDB: MovieEntityDao, lastSyncAt: Long)
     {
-        Log.i("GitRepository","Git movie db files data : $data");
+//        Log.i("GitRepository","Git movie db files data : $data");
         if(data == null || data.trim().isEmpty())
             return ;
-        val movieDataMap:HashMap<String,String> = HashMap();
 
+//        var movieDataToApply:MutableList<String> =  ArrayList<String>()
         val sc :Scanner =  Scanner(data);
         while(sc.hasNext())
         {
             val line:String = sc.nextLine();
-            val movieDataParts:List<String> = line.split("\\|");
-            movieDataParts.forEach({ movieDataPart->
-                Log.i("GitRepository","Git movie db data $movieDataPart");
-            })
-            movieDataMap.put(movieDataParts.get(0),movieDataParts.get(1))
+            val movieDataParts:List<String> = line.split("\\|".toRegex());
+//            movieDataParts.forEach({ movieDataPart->
+//                Log.i("GitRepository","Git movie db data $movieDataPart");
+//
+//            })
+            try {
+                val timestamp:Long = movieDataParts[0].toLong();
+                if(timestamp > lastSyncAt)
+                    applyToMovieDB(movieDataParts,movieDB);
+            }
+            catch(e:Exception)
+            {
+                e.printStackTrace();
+            }
+
         }
         sc.close();
-        saveMovieDataToDB(movieDataMap,context);
+//        saveMovieDataToDB(movieDataMap,movieDB);
     }
 
-    private fun saveMovieDataToDB(movieDataMap: HashMap<String, String>,context:Context)
+    private fun applyToMovieDB(movieDataParts:List<String>,movieDB: MovieEntityDao)
     {
-        MovieDb.getMovieDB(context);
+
+        Log.i("GitRepository","Applying $movieDataParts")
+        var index:Int = 0;
+        val timestamp:Long = movieDataParts[index++].toLong();
+        val type:String = movieDataParts[index++];
+        val id:String = movieDataParts[index++];
+        val tmdbId = movieDataParts[index++].toInt();
+        val gitRepo = movieDataParts[index];
+
+        if(type == "A")
+            addMovieToDB(id,tmdbId,gitRepo,movieDB);
+        else if(type == "U")
+            updateMovieToDB(id,tmdbId,gitRepo,movieDB);
+        else if(type == "D")
+            deleteMovie(id,movieDB);
+    }
+
+    private fun deleteMovie(id: String,movieDB: MovieEntityDao)
+    {
+        val movieEntity:MovieEntity? = movieDB.findById(id);
+        if(movieEntity != null)
+            movieDB.delete(movieEntity);
+    }
+
+    private fun updateMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao)
+    {
+        val call:Call<MovieDetailsResponse> = ApiClient.TMDB.fetchMovieById(tmdbId);
+        call.enqueue(object : Callback<MovieDetailsResponse> {
+            override fun onResponse(call: Call<MovieDetailsResponse>, response: Response<MovieDetailsResponse>)
+            {
+                if (response.isSuccessful) {
+                    val movieTmdbData: MovieDetailsResponse? = response.body()
+                    val movieEntity:MovieEntity? = movieDB.findById(id);
+                    var tmdbId = movieTmdbData?.id;
+                    var title = movieTmdbData?.title;
+                    var overview = movieTmdbData?.overview;
+
+                    if(title == null)
+                        title = "";
+
+                    if(overview == null)
+                        overview = "";
+
+                    if(tmdbId == null)
+                        tmdbId = 0;
+
+                    if(movieEntity == null)
+                        addMovieToDB(id,tmdbId,gitRepo,movieDB);
+                    else
+                    {
+                        movieEntity.id = tmdbId
+                        movieEntity.title = title;
+                        movieEntity.posterPath = movieTmdbData?.posterPath;
+                        movieEntity.backdropPath = movieTmdbData?.backdropPath;
+                        movieEntity.overview = overview
+                        movieEntity.releaseDate = movieTmdbData?.releaseDate;
+                        movieEntity.voteAverage = movieTmdbData?.voteAverage;
+                        movieEntity.genreIds = movieTmdbData?.genreIds
+                        movieEntity.streamingLink = gitRepo
+                        movieDB.update(movieEntity);
+                    }
+                }
+                else
+                    Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
+            }
+
+            override fun onFailure(call: Call<MovieDetailsResponse>, t: Throwable) {
+                Log.e("GitRepository", "Network call failed: ${t.message}",t)
+            }
+        })
+    }
+    private fun addMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao)
+    {
+        val call:Call<MovieDetailsResponse> = ApiClient.TMDB.fetchMovieById(tmdbId);
+        call.enqueue(object : Callback<MovieDetailsResponse> {
+            override fun onResponse(call: Call<MovieDetailsResponse>, response: Response<MovieDetailsResponse>)
+            {
+                if (response.isSuccessful) {
+                    val movieTmdbData: MovieDetailsResponse? = response.body()
+                    var tmdbId = movieTmdbData?.id;
+                    var title = movieTmdbData?.title;
+                    var overview = movieTmdbData?.overview;
+
+                    if(title == null)
+                        title = "";
+
+                    if(overview == null)
+                        overview = "";
+                    if(tmdbId == null)
+                        tmdbId = 0;
+                    val movieEntity:MovieEntity = MovieEntity(
+                        tmdbId,
+                        id,
+                        title,
+                        movieTmdbData?.posterPath,
+                        movieTmdbData?.backdropPath,
+                        overview,
+                        movieTmdbData?.releaseDate,
+                        movieTmdbData?.voteAverage,
+                        movieTmdbData?.genreIds,
+                        gitRepo
+                    );
+                    movieDB.insertAll(movieEntity);
+                    Log.i("GitRepository","added : " + movieEntity)
+                }
+                else
+                    Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
+            }
+
+            override fun onFailure(call: Call<MovieDetailsResponse>, t: Throwable) {
+                Log.e("GitRepository", "Network call failed: ${t.message}")
+            }
+        })
     }
 
     private fun processSeriesDBData(data: String?)
     {
-        Log.i("GitRepository","Git series db files data : $data");
+//        Log.i("GitRepository","Git series db files data : $data");
         if(data == null || data.trim().isEmpty())
             return ;
 

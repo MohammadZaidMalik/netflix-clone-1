@@ -12,14 +12,14 @@ localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace "com.netflixclone"
-    compileSdkVersion 33
+    compileSdkVersion 34
     buildFeatures {
         buildConfig true
     }
     defaultConfig {
         applicationId "com.netflixclone"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 2
         versionName "1.1"
 
@@ -55,7 +55,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
+
     implementation "androidx.room:room-runtime:2.6.1"
+    kapt "androidx.room:room-compiler:2.6.1"
+    implementation 'com.google.code.gson:gson:2.10.1'
 //    ksp "androidx.room:room-compiler:2.6.1"
     // UI
     implementation 'com.google.android.material:material:1.7.0'

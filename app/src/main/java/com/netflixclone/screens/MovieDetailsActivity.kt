@@ -125,12 +125,13 @@ class MovieDetailsActivity : BaseActivity() {
         binding.header.ratingText.text = details.voteAverage.toString()
 
         // Similar movies
-        similarMoviesItemsAdapter.submitList(details.similar.results)
+        similarMoviesItemsAdapter.submitList(details.similar?.results)
         similarMoviesItemsAdapter.notifyDataSetChanged()
 
         // Videos
-        checkAndLoadVideo(details.videos.results)
-        videosController.setData(details.videos.results)
+        if(details.videos != null)
+            checkAndLoadVideo(details.videos.results)
+        videosController.setData(details.videos?.results)
     }
 
     private fun checkAndLoadVideo(videos: List<Video>) {

@@ -4,6 +4,7 @@ import com.netflixclone.data_models.Media
 import com.netflixclone.data_models.Movie
 import com.netflixclone.data_models.TvShow
 import com.netflixclone.network.models.*
+import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -23,6 +24,11 @@ interface TmdbService {
 
     @GET("movie/{id}?append_to_response=similar,videos")
     suspend fun fetchMovieDetails(@Path("id") movieId: Int): MovieDetailsResponse
+
+    @GET("movie/{id}")
+    fun fetchMovieById(@Path("id") movieId: Int): Call<MovieDetailsResponse>
+
+
 
     @GET("movie/{id}/similar")
     suspend fun fetchSimilarMovies(@Path("id") movieId: Int): PageResponse<Movie>
