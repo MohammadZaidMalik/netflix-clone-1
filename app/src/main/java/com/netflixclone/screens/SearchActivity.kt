@@ -2,9 +2,13 @@ package com.netflixclone.screens
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.DisplayMetrics
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.netflixclone.R
 import com.netflixclone.adapters.MediaItemsAdapter
 import com.netflixclone.adapters.TopMoviesController
 import com.netflixclone.data.SearchResultsViewModel
@@ -29,10 +33,21 @@ class SearchActivity : AppCompatActivity() {
 
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val recyclerView: RecyclerView = findViewById(R.id.results_list)
+        val spanCount = calculateSpanCount(300)
+        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
         setupUI()
         setupViewModel()
         fetchData()
+    }
+    private fun calculateSpanCount(itemWidth: Int): Int {
+        // Get screen width in pixels
+        val displayMetrics: DisplayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+
+        // Calculate span count
+        return (screenWidth / itemWidth).coerceAtLeast(1) // Ensure at least one column
     }
 
     @SuppressLint("ClickableViewAccessibility")

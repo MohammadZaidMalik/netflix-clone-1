@@ -29,7 +29,9 @@ object GitRepository
         ex.execute({->
             syncMovieData();
     });
-//        ex.execute(()->syncSeriesData());
+//        ex.execute({
+//            ->syncSeriesData()
+//        });
 
     }
 
@@ -74,7 +76,6 @@ object GitRepository
                     if (response.isSuccessful)
                     {
                         val posts: String? = response.body()
-//                        Log.i("GitRepository","Git movie master data $posts");
                         parseSeriesMaster(posts);
                     }
                     else
@@ -118,7 +119,6 @@ object GitRepository
     private fun loadSeriesFromDbFiles(dbFiles: ArrayList<String?>)
     {
         dbFiles.forEach{dbFileName ->
-//            Log.i("GitRepository","Git series db files $dbFileName");
             if(dbFileName == null || dbFileName.trim().isEmpty())
                 return;
 
@@ -129,7 +129,6 @@ object GitRepository
                     if (response.isSuccessful)
                     {
                         val seriesData: String? = response.body()
-//                        Log.i("GitRepository","Git series db data $seriesData");
                         processSeriesDBData(seriesData);
                     }
                     else
@@ -365,7 +364,6 @@ object GitRepository
 
     private fun processSeriesDBData(data: String?)
     {
-//        Log.i("GitRepository","Git series db files data : $data");
         if(data == null || data.trim().isEmpty())
             return ;
 
@@ -374,8 +372,18 @@ object GitRepository
         {
             val line:String = sc.nextLine();
             val seriesDataParts:List<String> = line.split("\\|");
-            seriesDataParts.forEach({ seriesDataPart-> Log.i("GitRepository","Git series db data $seriesDataPart"); })
+            try
+            {
+                val timestamp:Long = seriesDataParts[0].toLong();
+//                if(timestamp > lastSyncAt)
+//                    applyToMovieDB(movieDataParts,movieDB);
+            }
+            catch(e:Exception)
+            {
+                e.printStackTrace();
+            }
         }
+        sc.close();
     }
 
     private fun getGitData(s:String) = ApiClient.GITDB.getPlainText(s)
