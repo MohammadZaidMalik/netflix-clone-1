@@ -19,6 +19,7 @@ data class MovieEntity(
     @ColumnInfo(name = "vote_average") override var voteAverage: Double?,
     @ColumnInfo(name = "genre_ids") override var genreIds: List<Int>?,
     @ColumnInfo(name = "streaming_link") override var streamingLink: String?,
+    @ColumnInfo(name = "timestamp") var timestamp: Long?,
 ) : IMovie
 
 fun MovieEntity.toMovie() =

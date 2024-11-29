@@ -13,11 +13,11 @@ interface MovieEntityDao
     @Query("SELECT * FROM movieentity")
     fun getAll(): List<MovieEntity>
 
-    @Query("SELECT * FROM movieentity LIMIT :pageSize OFFSET :rowOffset")
+    @Query("SELECT * FROM movieentity ORDER BY timestamp desc  LIMIT :pageSize OFFSET :rowOffset")
     fun getAllByPage(pageSize:Int, rowOffset:Int): List<MovieEntity>
 
 
-    @Query("SELECT * FROM movieentity where id = :id")
+    @Query("SELECT * FROM movieentity where gitUid = :id")
     fun findById(id:String): MovieEntity?
 
     @Query("SELECT * FROM movieentity WHERE title LIKE :title LIMIT 10")

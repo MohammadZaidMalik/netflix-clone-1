@@ -1,5 +1,6 @@
 package com.netflixclone.data
 
+import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import com.netflixclone.db.MovieDb
 import com.netflixclone.db.entity.MovieEntity
@@ -117,7 +118,7 @@ object GitRepository
     private fun loadSeriesFromDbFiles(dbFiles: ArrayList<String?>)
     {
         dbFiles.forEach{dbFileName ->
-            Log.i("GitRepository","Git series db files $dbFileName");
+//            Log.i("GitRepository","Git series db files $dbFileName");
             if(dbFileName == null || dbFileName.trim().isEmpty())
                 return;
 
@@ -128,7 +129,7 @@ object GitRepository
                     if (response.isSuccessful)
                     {
                         val seriesData: String? = response.body()
-                        Log.i("GitRepository","Git series db data $seriesData");
+//                        Log.i("GitRepository","Git series db data $seriesData");
                         processSeriesDBData(seriesData);
                     }
                     else
@@ -231,7 +232,7 @@ object GitRepository
     private fun applyToMovieDB(movieDataParts:List<String>,movieDB: MovieEntityDao)
     {
 
-        Log.i("GitRepository","Applying $movieDataParts")
+//        Log.i("GitRepository","Applying $movieDataParts")
         var index:Int = 0;
         val timestamp:Long = movieDataParts[index++].toLong();
         val type:String = movieDataParts[index++];
@@ -240,9 +241,9 @@ object GitRepository
         val gitRepo = movieDataParts[index];
 
         if(type == "A")
-            addMovieToDB(id,tmdbId,gitRepo,movieDB);
+            addMovieToDB(id,tmdbId,gitRepo,movieDB,timestamp);
         else if(type == "U")
-            updateMovieToDB(id,tmdbId,gitRepo,movieDB);
+            updateMovieToDB(id,tmdbId,gitRepo,movieDB,timestamp);
         else if(type == "D")
             deleteMovie(id,movieDB);
     }
@@ -254,15 +255,20 @@ object GitRepository
             movieDB.delete(movieEntity);
     }
 
-    private fun updateMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao)
+    private fun updateMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao, timestamp:Long)
     {
+        val movieEntity:MovieEntity? = movieDB.findById(id);
+        if(movieEntity == null) {
+            addMovieToDB(id, tmdbId, gitRepo, movieDB, timestamp);
+            return;
+        }
         val call:Call<MovieDetailsResponse> = ApiClient.TMDB.fetchMovieById(tmdbId);
         call.enqueue(object : Callback<MovieDetailsResponse> {
             override fun onResponse(call: Call<MovieDetailsResponse>, response: Response<MovieDetailsResponse>)
             {
                 if (response.isSuccessful) {
                     val movieTmdbData: MovieDetailsResponse? = response.body()
-                    val movieEntity:MovieEntity? = movieDB.findById(id);
+
                     var tmdbId = movieTmdbData?.id;
                     var title = movieTmdbData?.title;
                     var overview = movieTmdbData?.overview;
@@ -276,10 +282,8 @@ object GitRepository
                     if(tmdbId == null)
                         tmdbId = 0;
 
-                    if(movieEntity == null)
-                        addMovieToDB(id,tmdbId,gitRepo,movieDB);
-                    else
-                    {
+
+
                         movieEntity.id = tmdbId
                         movieEntity.title = title;
                         movieEntity.posterPath = movieTmdbData?.posterPath;
@@ -289,8 +293,8 @@ object GitRepository
                         movieEntity.voteAverage = movieTmdbData?.voteAverage;
                         movieEntity.genreIds = movieTmdbData?.genreIds
                         movieEntity.streamingLink = gitRepo
+                        movieEntity.timestamp = timestamp
                         movieDB.update(movieEntity);
-                    }
                 }
                 else
                     Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
@@ -301,8 +305,14 @@ object GitRepository
             }
         })
     }
-    private fun addMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao)
+    private fun addMovieToDB(id:String, tmdbId:Int, gitRepo:String,movieDB: MovieEntityDao, timestamp:Long)
     {
+
+        val movieE:MovieEntity? = movieDB.findById(id);
+        if(movieE != null) {
+            updateMovieToDB(id, tmdbId, gitRepo, movieDB, timestamp);
+            return;
+        }
         val call:Call<MovieDetailsResponse> = ApiClient.TMDB.fetchMovieById(tmdbId);
         call.enqueue(object : Callback<MovieDetailsResponse> {
             override fun onResponse(call: Call<MovieDetailsResponse>, response: Response<MovieDetailsResponse>)
@@ -330,10 +340,18 @@ object GitRepository
                         movieTmdbData?.releaseDate,
                         movieTmdbData?.voteAverage,
                         movieTmdbData?.genreIds,
-                        gitRepo
+                        gitRepo,
+                        timestamp
                     );
-                    movieDB.insertAll(movieEntity);
-                    Log.i("GitRepository","added : " + movieEntity)
+                    try {
+                        movieDB.insertAll(movieEntity);
+
+                    }
+                    catch (e:SQLiteConstraintException)
+                    {
+                        updateMovieToDB(id, tmdbId, gitRepo, movieDB, timestamp);
+                    }
+//                    Log.i("GitRepository","added : " + movieEntity)
                 }
                 else
                     Log.e("GitRepository", "Error: ${response.code()} ${response.message()}")
